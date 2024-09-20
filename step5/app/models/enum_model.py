@@ -1,0 +1,14 @@
+from enum import Enum
+from app.lib import constants
+
+
+class OrderStatus(str, Enum):
+	PENDING = constants.ORDER_STATUS_PENDING
+	COMPLETED = constants.ORDER_STATUS_COMPLETED
+	CANCELLED = constants.ORDER_STATUS_CANCELLED
+	REJECTED = constants.ORDER_STATUS_REJECTED
+	SHIPPED = constants.ORDER_STATUS_SHIPPED
+	DELIVERED = constants.ORDER_STATUS_DELIVERED
+	RETURNED = constants.ORDER_STATUS_RETURNED
+	CONFIRMED = constants.ORDER_STATUS_CONFIRMED
+

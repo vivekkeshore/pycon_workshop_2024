@@ -1,0 +1,207 @@
+// https://dbdocs.io/vivek.keshore/SenecaECommerce
+Project SenecaECommerce {
+    database_type: 'PostgreSQL'
+    Note: 'Database Design of Seneca Ecommerce backend application.'
+}
+
+// schema - users
+Table users.user [note: 'schema - users'] {
+  id UUID [pk]
+  name varchar(256) [not null]
+  username varchar(256) [unique, not null]
+  email varchar(256) [unique, not null]
+  phone varchar(20)
+  password_hash varchar(512) [not null]
+  created_at timestamp [default: `now()`]
+  updated_at timestamp [default: `now()`]
+
+  indexes {
+    username [name:'idx_username']
+    email [name:'idx_email']
+  }
+}
+
+// schema - users
+Table users.address [note: 'schema - users'] {
+  id UUID [pk]
+  user_id UUID [not null]
+  label varchar(256)
+  address_line1 varchar(256) [not null]
+  address_line2 varchar(256)
+  city varchar(256) [not null]
+  state varchar(256) [not null]
+  postal_code varchar(10) [not null]
+  country varchar(256) [not null]
+  is_active boolean [not null, default: true]
+  created_at timestamp [default: `now()`]
+  updated_at timestamp [default: `now()`]
+  indexes {
+    user_id [name:'idx_user_id']
+  }
+}
+
+// schema - users
+Table users.auth_token [note: 'schema - users'] {
+    id uuid [pk]
+    user_id uuid [not null]
+    token varchar(512) [not null]
+    token_hash varchar(256) [not null]
+    valid_till timestamp [not null]
+    is_active boolean [default: true]
+    created_on timestamp [default: `now()`]
+    modified_on timestamp [default: `now()`]
+
+    Indexes {
+        user_id [name:'idx_auth_token_user_id']
+        token_hash [name:'idx_auth_token_token_hash']
+    }
+}
+
+// schema - users
+Table users.role [note: 'schema - users'] {
+    id uuid [pk]
+    name varchar(256) [not null]
+    description varchar(256)
+    created_at timestamp [default: `now()`]
+    updated_at timestamp [default: `now()`]
+}
+
+// schema - users
+Table users.user_role [note: 'schema - users'] {
+    id uuid [pk]
+    user_id uuid [not null]
+    role_id uuid [not null]
+    is_active boolean [not null, default: true]
+    created_at timestamp [default: `now()`]
+    updated_at timestamp [default: `now()`]
+
+    Indexes {
+        user_id [name:'idx_user_role_user_id']
+        role_id [name:'idx_user_role_role_id']
+    }
+}
+
+// schema - products
+Table products.category [note: 'schema - products'] {
+  id UUID [pk]
+  name varchar(256) [unique, not null]
+  description text
+  created_at timestamp [default: `now()`]
+  updated_at timestamp [default: `now()`]
+}
+
+// schema - products
+Table products.product [note: 'schema - products'] {
+  id UUID [pk]
+  category_id UUID [not null]
+  name varchar(256) [not null]
+  description text
+  price float [not null]
+  stock int [not null]
+  created_at timestamp [default: `now()`]
+  updated_at timestamp [default: `now()`]
+
+  indexes {
+    name [name:'idx_product_name']
+    category_id [name:'idx_product_category_id']
+  }
+}
+
+// schema - products
+Table products.review [note: 'schema - products'] {
+  id UUID [pk]
+  user_id UUID [not null]
+  product_id UUID [not null]
+  rating int [not null]
+  comment text
+  created_at timestamp [default: `now()`]
+  updated_at timestamp [default: `now()`]
+
+    indexes {
+        user_id [name:'idx_review_user_id']
+        product_id [name:'idx_review_product_id']
+    }
+}
+
+
+Enum order_status {
+    PENDING
+    COMPLETED
+    CANCELLED
+    REJECTED
+    SHIPPED
+    DELIVERED
+    RETURNED
+    CONFIRMED
+}
+
+// schema - orders
+Table orders.order [note: 'schema - orders'] {
+  id UUID [pk]
+  user_id UUID [not null]
+  status order_status [not null]
+  total_price float [not null]
+  created_at timestamp [default: `now()`]
+  updated_at timestamp [default: `now()`]
+
+    indexes {
+        user_id [name:'idx_order_user_id']
+    }
+}
+
+// schema - orders
+Table orders.order_item {
+  id UUID [pk]
+  order_id UUID [not null]
+  product_id UUID [not null]
+  quantity int [not null]
+  price float [not null]
+  created_at timestamp [default: `now()`]
+  updated_at timestamp [default: `now()`]
+
+    indexes {
+        order_id [name:'idx_order_item_order_id']
+        product_id [name:'idx_order_item_product_id']
+    }
+}
+
+// schema - orders
+Table orders.cart [note: 'schema - orders'] {
+  id UUID [pk]
+  user_id UUID [not null]
+  created_at timestamp [default: `now()`]
+  updated_at timestamp [default: `now()`]
+
+    indexes {
+        user_id [name:'idx_cart_user_id']
+    }
+}
+
+// schema - orders
+Table orders.cart_item [note: 'schema - orders'] {
+  id UUID [pk]
+  cart_id UUID [not null]
+  product_id UUID [not null]
+  quantity int [not null]
+  created_at timestamp [default: `now()`]
+  updated_at timestamp [default: `now()`]
+
+        indexes {
+            cart_id [name:'idx_cart_item_cart_id']
+            product_id [name:'idx_cart_item_product_id']
+        }
+}
+
+Ref: products.product.category_id > products.category.id
+Ref: users.auth_token.user_id > users.user.id
+Ref: users.user_role.user_id > users.user.id
+Ref: users.user_role.role_id > users.role.id
+Ref: orders.order.user_id > users.user.id
+Ref: orders.order_item.order_id > orders.order.id
+Ref: orders.order_item.product_id > products.product.id
+Ref: users.address.user_id > users.user.id
+Ref: products.review.user_id > users.user.id
+Ref: products.review.product_id > products.product.id
+Ref: orders.cart.user_id > users.user.id
+Ref: orders.cart_item.cart_id > orders.cart.id
+Ref: orders.cart_item.product_id > products.product.id
